@@ -22,16 +22,8 @@ class SintaxAnalyzer:
         # precedence= (
         #     ('right')
         # )
-        """Type of tokens:
 
-        T_StringConstant
-        T_Identifier
-        T_DoubleConstant
-        T_IntConstant
-
-        """
-
-    def p_Program(self, p):
+    def p_Program(self, p): #Recuse parse RECUERDA!!!
         "Program : Decl+"
         print("Program")
 
