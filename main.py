@@ -17,19 +17,22 @@ class SintaxAnalyzer:
 
         self.tokens = np.load(arr_file)
 
-        print(self.tokens)
+        #print(self.tokens)
 
         # precedence= (
         #     ('right')
         # )
+        self.p_Program(self.tokens)
 
     def p_Program(self, p): #Recuse parse RECUERDA!!!
         "Program : Decl+"
-        print("Program")
+        print("   Program:")
+        self.p_Decl(p)
 
     def p_Decl(self, p):
         "Decl : VariableDecl"
         print("Decl 1")
+        self.p
 
     def p_Decl2(self, p):
         "Decl : FunctionDecl"
