@@ -53,7 +53,6 @@ class Lex_Analyzer:
 
                 #Loop through each token detected
                 for token in tokens:
-                    print("Tok", token)
                     #Boolean objects to avoid double detection
                     float_token = False
                     kewrd_token = False

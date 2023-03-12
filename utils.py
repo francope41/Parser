@@ -1,6 +1,8 @@
 #Parser class in charge of top-down parsing the inputted file
 
 import numpy as np
+from operator import methodcaller
+
 #Tokens item come as an array of 3 alements [Token, Type, Location]
 class Parser:
     def __init__(self, tokens):
@@ -22,7 +24,7 @@ class Parser:
 
     def Program(self):
         "Program : Decl+"
-        print("   Program: ")
+        print("\n   Program: ")
         self.parsed.append("   Program: ")
         self.Decl()
 
@@ -85,8 +87,27 @@ class Parser:
         "StmtBlock : { VariableDecl* Stmt* }"
         StmtBlock = self.curr_token
         print("         (body) StmtBlock: ")
+        self.Statement()
+
+    def Statement(self):
+        statemen_types = ["if","While","for","break","return","Print"]
         self.Next()
-        print("curr", self.curr_token)
+        while self.curr_token[0] in statemen_types:
+            print("            {}: ".format(self.curr_token[0]+"Stmt"))
+
+            if self.curr_token[0] in statemen_types:
+                Statement_Type = methodcaller(str(self.curr_token[0]+"Stmt"))
+                Statement_Type(self)
+        
+            else:
+                self.StmtBlock()
+
+    def ifStmt(self):
+        pass
+
+    def PrintStmt(self):
+        self.Next()
+        print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
 
 
 

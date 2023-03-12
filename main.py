@@ -18,7 +18,8 @@ class SintaxAnalyzer:
         tokens = np.load(arr_file)
         parser = Parser(tokens)
         tree = parser.Parse()
-        print(tree)
+        if tree is not None:
+            print(tree)
 
 
     def p_Program(self, p): #Recuse parse RECUERDA!!!
