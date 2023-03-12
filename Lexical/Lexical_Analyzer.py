@@ -17,6 +17,7 @@ class Lex_Analyzer:
     def __init__(self, file_path):
         file_path = file_path
         out_tokens = [] #Token, Type, Location
+        out_lines = []
         #Create an instance of the tokenizer extracted from utils.py
         tokenizer = DecafTokenizer() 
         
@@ -45,6 +46,7 @@ class Lex_Analyzer:
         #Loop through lines
         for line in program:
             line_count += 1 #Add count to line
+            out_lines.append(line)
             tokens = tokenizer.tokenize(line) #Call tokenizer class from utils.py
             if tokens is not None: #Make sure there where tokens detected
 
@@ -192,10 +194,13 @@ class Lex_Analyzer:
 
                         else:
                             pass
-        
         out_tokens = np.array(out_tokens)
+        out_lines = np.array(out_lines)
         save_file = open("arr","wb")
+        save_file_lines = open("lines_read","wb")
         np.save(save_file, out_tokens)
+        np.save(save_file_lines, out_lines)
         save_file.close
+        save_file_lines.close
 
 Lex_Analyzer(sys.argv[1])

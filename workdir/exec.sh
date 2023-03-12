@@ -5,5 +5,5 @@ if [ $# -eq 0 ]
 else
     python ../Lexical/Lexical_Analyzer.py $1
 
-    python ../main.py arr
+    python ../main.py arr lines_read
 fi

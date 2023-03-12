@@ -12,17 +12,14 @@ from utils import Parser
 
 
 class SintaxAnalyzer:
-    def __init__(self, arr_dir):
-        arr_file = open("arr", "rb")
+    def __init__(self, arr_dir, lines_dir):
+        #Open and read array with tokens
+        arr_file = open(arr_dir, "rb")
+        tokens = np.load(arr_file)
+        parser = Parser(tokens)
+        tree = parser.Parse()
+        print(tree)
 
-        self.tokens = np.load(arr_file)
-
-        #print(self.tokens)
-
-        # precedence= (
-        #     ('right')
-        # )
-        self.p_Program(self.tokens)
 
     def p_Program(self, p): #Recuse parse RECUERDA!!!
         "Program : Decl+"
@@ -272,4 +269,4 @@ class SintaxAnalyzer:
 
 
 
-SintaxAnalyzer(sys.argv[1])
+SintaxAnalyzer(sys.argv[1], sys.argv[2])
