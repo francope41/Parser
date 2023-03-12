@@ -6,6 +6,7 @@ class Parser:
     def __init__(self, tokens):
         self.loc = 0
         self.tokens = tokens
+        self.token_lst = [list(x) for x in self.tokens]
         #Open and read inputed file
         lines_file = open("lines_read", "rb")
         self.lines = np.load('arr')
@@ -53,13 +54,16 @@ class Parser:
         "Decl : Type ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlockType ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlock"
         FuncDecl = self.curr_token
         self.Next()
+        index = self.token_lst.index(list(FuncDecl))
         if self.curr_token[0] == ")":
-            print("         (return type) Type: {}".format(self.tokens[0][0]))
-            print("  {}      Identifier: {}".format(self.curr_token[2],self.tokens[1][0]))
+            print("         (return type) Type: {}".format(self.tokens[index-2][0]))
+            print("  {}      Identifier: {}".format(self.curr_token[2],self.tokens[index-1][0]))
+            self.Next()
+            while self.curr_token[0] == "{":
+                self.StmtBlock()
+                
         else:
             self.Formals()
-
-
 
     def Variable(self):
         return True
@@ -74,12 +78,16 @@ class Parser:
     def Formals(self):
         'Formals : Variable+, | ϵ'
         form = self.curr_token
+        # else:
+        #     pass
+
+    def StmtBlock (self):
+        "StmtBlock : { VariableDecl* Stmt* }"
+        StmtBlock = self.curr_token
+        print("         (body) StmtBlock: ")
         self.Next()
-        if self.curr_token[0] == ")":
-            print("         (return type) Type: void")
-            print("  {}      Identifier: main".format(self.curr_token[2]))
-        else:
-            pass
+        print("curr", self.curr_token)
+
 
 
 

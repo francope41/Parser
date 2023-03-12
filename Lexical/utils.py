@@ -3,7 +3,7 @@ import re
 class DecafTokenizer:
     def __init__(self):
         #Define Rules for REGEX
-        self.Keywords = "^void$|^int$|^double$|^bool$|^string$|^null$|^for$|^while$|^if$|^else$|^return$|^break$|^Print$|^ReadInteger$|^ReadLine$|^true$|^false$"
+        self.Keywords = "^void$|^int$|^double$|^bool$|^string$|^null$|^for$|^while$|^if$|^else$|^return$|^break$|Print|^ReadInteger$|^ReadLine$|^true$|^false$"
         self.Operators = "\++|\-|\*|/|%|<=|>=|[||]{2}|[==]{2}|="
         self.Int = '[0-9]+'
         self.Int_Hex = '0[xX][0-9A-Fa-f]+'
@@ -42,16 +42,17 @@ class DecafTokenizer:
             StringTokens = [tk for tk in re.findall(self.paterString,self.line)]
             for tk in StringTokens:
                 self.tokens.append("\"{}\"".format(tk))
+
+        #Check if keywords present in line
+        if self.paternKeywords.search(self.line):
+            KeywordTokens = [tk for tk in re.findall(self.paternKeywords,self.line)]                
+            for tk in KeywordTokens: self.tokens.append(tk)
         
         # Check if string is not properly defined
         elif line.startswith("\"") and not line.endswith("\""):
                 self.tokens.append(line)
 
         else:
-            #Check if keywords present in line
-            if self.paternKeywords.search(self.line):
-                KeywordTokens = [tk for tk in re.findall(self.paternKeywords,self.line)]                
-                for tk in KeywordTokens: self.tokens.append(tk)
 
             #Check if floats present in line
             if self.paterFloat.search(self.line) or self.paterFloat_eE.search(self.line):

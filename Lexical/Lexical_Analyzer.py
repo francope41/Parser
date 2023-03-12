@@ -48,10 +48,12 @@ class Lex_Analyzer:
             line_count += 1 #Add count to line
             out_lines.append(line)
             tokens = tokenizer.tokenize(line) #Call tokenizer class from utils.py
+            #print("tokens", tokens)
             if tokens is not None: #Make sure there where tokens detected
 
                 #Loop through each token detected
                 for token in tokens:
+                    print("Tok", token)
                     #Boolean objects to avoid double detection
                     float_token = False
                     kewrd_token = False
@@ -66,7 +68,6 @@ class Lex_Analyzer:
                     #Check error in string not opened but closed
                     if token.startswith("\"") and not token.endswith("\""):
                         print('\n*** Error line {}.\n*** Unterminated string constant: {}\n'.format(line_count,token))
-                        break
                     
                     #Check if token is a decaf string and  ignore any other possible token while token it's a string
                     if re.search(String,token):
