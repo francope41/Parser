@@ -3,7 +3,7 @@ import re
 class DecafTokenizer:
     def __init__(self):
         #Define Rules for REGEX
-        self.Keywords = "^void$|^int$|^double$|^bool$|^string$|^null$|^for$|^while$|^if$|^else$|^return$|^break$|Print|^ReadInteger$|^ReadLine$|^true$|^false$"
+        self.Keywords = "^void$|int|^double$|^bool$|^string$|^null$|^for$|^while$|^if$|^else$|^return$|^break$|Print|^ReadInteger$|^ReadLine$|^true$|^false$"
         self.Operators = "\++|\-|\*|/|%|<=|>=|[||]{2}|[==]{2}|="
         self.Int = '[0-9]+'
         self.Int_Hex = '0[xX][0-9A-Fa-f]+'
@@ -52,10 +52,8 @@ class DecafTokenizer:
         elif line.startswith("\"") and not line.endswith("\""):
                 self.tokens.append(line)
 
-        else:
-
-            #Check if floats present in line
-            if self.paterFloat.search(self.line) or self.paterFloat_eE.search(self.line):
+        #Check if floats present in line
+        elif self.paterFloat.search(self.line) or self.paterFloat_eE.search(self.line):
                 #Check if line has float with exponent
                 if self.paterFloat_eE.search(self.line):
                     Float_eE_Tokens = [tk for tk in re.findall(self.paterFloat_eE,self.line)]
@@ -85,41 +83,41 @@ class DecafTokenizer:
                         else:
                             pass
             
-            #If not float then check if line has an Integer or Hex Integer
-            elif (self.paternInt.search(self.line) or self.paternInt_Hex.search(self.line)):
-                IntTokens = [tk for tk in re.findall(self.paternInt,self.line)]
-                for tk in IntTokens:
-                    self.tokens.append(tk)
+        #If not float then check if line has an Integer or Hex Integer
+        elif (self.paternInt.search(self.line) or self.paternInt_Hex.search(self.line)):
+            IntTokens = [tk for tk in re.findall(self.paternInt,self.line)]
+            for tk in IntTokens:
+                self.tokens.append(tk)
 
-            #Check if line has an Identifier
-            if self.paternIdentifiers.search(self.line):
-                IdentifierTokens = [tk for tk in re.findall(self.paternIdentifiers,self.line)]
-                for tk in IdentifierTokens:
-                    #Clean line so that tokens do not repeat in other classes
-                    self.line = self.line.replace(tk,'')
-                    if tk in KeywordTokens: pass 
-                    else: self.tokens.append(tk)
+        #Check if line has an Identifier
+        if self.paternIdentifiers.search(self.line):
+            IdentifierTokens = [tk for tk in re.findall(self.paternIdentifiers,self.line)]
+            for tk in IdentifierTokens:
+                #Clean line so that tokens do not repeat in other classes
+                self.line = self.line.replace(tk,'')
+                if tk in KeywordTokens: pass 
+                else: self.tokens.append(tk)
 
-            #Check if line has an Operator
-            if self.paternOperators.search(self.line):
-                OperatorTokens = [tk for tk in re.findall(self.paternOperators,self.line)]
-                for tk in OperatorTokens:
-                    self.line = self.line.replace(tk,'')
-                    self.tokens.append(tk)
+        #Check if line has an Operator
+        if self.paternOperators.search(self.line):
+            OperatorTokens = [tk for tk in re.findall(self.paternOperators,self.line)]
+            for tk in OperatorTokens:
+                self.line = self.line.replace(tk,'')
+                self.tokens.append(tk)
 
-            #Check if line has a Special Character
-            if self.paternSpecialChar.search(self.line):  
-                SpecialCharTokens = [tk for tk in re.findall(self.paternSpecialChar,self.line)]
-                for tk in SpecialCharTokens: self.tokens.append(tk)
-            
-            #Check if line ends with '"', if so append the whole line to check error
-            if line.endswith("\""):
-                self.tokens.append("\"")
+        #Check if line has a Special Character
+        if self.paternSpecialChar.search(self.line):  
+            SpecialCharTokens = [tk for tk in re.findall(self.paternSpecialChar,self.line)]
+            for tk in SpecialCharTokens: self.tokens.append(tk)
+        
+        #Check if line ends with '"', if so append the whole line to check error
+        if line.endswith("\""):
+            self.tokens.append("\"")
 
         if self.tokens:
             ocur_count = 0
             for token in self.tokens:
-                if self.paterString.search(token):
+                if self.paterString.search(token) or self.paternKeywords.search(token): #Get more than one ocurrance
                     #Get the index location of every occurrence of a token
                     m = [match.start() for match in re.finditer(token, line)]
                     #If more than one occurrence get the first index and increment count occurrences

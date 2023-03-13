@@ -27,62 +27,72 @@ class Parser:
 
     def Program(self):
         "Program : Decl+"
-
         print("\n   Program: ")
-        self.Decl() 
+        self.Decl()
+        if self.curr_token is None:
+            pass
+        else:
+            self.Decl()
 
     def Decl(self):
         "Decl : VariableDecl | FunctionDecl"
-        Decl = self.curr_token
-        self.Next()
-
-        while self.curr_token[1] == "T_Identifier":
+        first_tkn = self.curr_token
+        curr_type = self.GetType()
+        if curr_type is not False:
             self.Next()
-            if self.curr_token[1] ==";":
-                print("  {}   VarDecl: ".format(self.curr_token[2]))
-                self.VariableDecl()
+            next_tkn = self.curr_token
+            if next_tkn[1] == "T_Identifier":
+                self.Next()
+                next_next_tkn = self.curr_token
+                if next_next_tkn[0] == "(":
+                    self.FunctionDecl(first_tkn,next_tkn)
+                else:
+                    self.VariableDecl(first_tkn,next_tkn)
             else:
-                print("  {}   FnDecl: ".format(self.curr_token[2]))
-                self.FunctionDecl()
+                print("Report SyntaxErr") #Create syntax error function
 
-    def VariableDecl(self):
+    def VariableDecl(self, first_tkn,next_tkn):
         "Decl : Variable ;"
-        variable = self.Variable()
-        if variable != False:
-            return True
+        if self.curr_token[0] ==";":
+                print("  {}   VarDecl: ".format(self.curr_token[2]))
+                self.Variable(first_tkn,next_tkn)
+                self.Next()
         else:
-            return False
+            raise Exception()
         
-    def FunctionDecl(self):
-        "Decl : Type ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlockType ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlock"
+    def FunctionDecl(self,first_tkn,next_tkn):
+        "Decl : Type ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlockType ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlock"            
         FuncDecl = self.curr_token
+        print("  {}   FnDecl: ".format(self.curr_token[2]))
         self.Next()
-        index = self.token_lst.index(list(FuncDecl))
         if self.curr_token[0] == ")":
-            print("         (return type) Type: {}".format(self.tokens[index-2][0]))
-            print("  {}      Identifier: {}".format(self.curr_token[2],self.tokens[index-1][0]))
+            print("         (return type) Type: {}".format(first_tkn[0]))
+            print("  {}      Identifier: {}".format(next_tkn[2], next_tkn[0]))
             self.Next()
-            while self.curr_token[0] == "{":
+            if self.curr_token[0] == "{":
                 self.StmtBlock()
                 
         else:
+            print("         (return type) Type: {}".format(first_tkn[0]))
+            print("  {}      Identifier: {}".format(next_tkn[2], next_tkn[0]))
             self.Formals()
 
-    def Variable(self):
-        return True
+    def Variable(self,first_tkn,next_tkn):
+        print("         Type: {}".format(first_tkn[0]))
+        print("  {}      Identifier: {}".format(next_tkn[2],next_tkn[0]))
+        
 
     def GetType(self):
         if (self.curr_token is not None and self.curr_token[1] == "T_Void" or self.curr_token[1] == "T_Int" or self.curr_token[1] == "T_Double" or self.curr_token[1] == "T_String" 
             or self.curr_token[1] == "T_Bool"):
-            return self.curr_token[1]
+            return self.curr_token
         else:
             return False
 
     def Formals(self):
         'Formals : Variable+, | ϵ'
-        form = self.curr_token
-        # else:
-        #     pass
+        #self.Variable(first_tkn,next_tkn)
+        print("self", self.curr_token)
 
     def StmtBlock (self):
         "StmtBlock : { VariableDecl* Stmt* }"
@@ -93,22 +103,26 @@ class Parser:
     def Statement(self):
         statemen_types = ["if","While","for","break","return","Print"]
         self.Next()
-        while self.curr_token[0] in statemen_types:
+        curr_statement = self.curr_token
+        if curr_statement[0] in statemen_types:
             print("            {}: ".format(self.curr_token[0]+"Stmt"))
-
-            if self.curr_token[0] in statemen_types:
-                Statement_Type = methodcaller(str(self.curr_token[0]+"Stmt"))
+            if curr_statement[0] in statemen_types: #PrintStmt
+                Statement_Type = methodcaller(str(curr_statement[0]+"Stmt"))
                 Statement_Type(self)
         
             else:
                 self.StmtBlock()
+        self.Next()
 
     def ifStmt(self):
         pass
 
     def PrintStmt(self):
         self.Next()
-        print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
+
+        if self.curr_token[0] == "(":
+            self.Next() 
+            print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
 
 
     def Parse(self):
