@@ -12,8 +12,11 @@ class Parser:
         #Open and read inputed file
         lines_file = open("lines_read", "rb")
         self.lines = np.load('arr')
-        self.parsed = []
-        self.curr_token = self.tokens[self.loc]
+        if len(self.tokens) > 0:
+            self.curr_token = self.tokens[self.loc]
+        else:
+            self.curr_token = None
+            print("Empty program is syntactically incorrect.")
 
     def Next(self):
         try:
@@ -24,9 +27,9 @@ class Parser:
 
     def Program(self):
         "Program : Decl+"
+
         print("\n   Program: ")
-        self.parsed.append("   Program: ")
-        self.Decl()
+        self.Decl() 
 
     def Decl(self):
         "Decl : VariableDecl | FunctionDecl"
@@ -37,11 +40,9 @@ class Parser:
             self.Next()
             if self.curr_token[1] ==";":
                 print("  {}   VarDecl: ".format(self.curr_token[2]))
-                self.parsed.append("  {}   VarDecl: ".format(self.curr_token[2]))
                 self.VariableDecl()
             else:
                 print("  {}   FnDecl: ".format(self.curr_token[2]))
-                self.parsed.append("  {}   FnDecl: ".format(self.curr_token[2]))
                 self.FunctionDecl()
 
     def VariableDecl(self):
@@ -108,8 +109,6 @@ class Parser:
     def PrintStmt(self):
         self.Next()
         print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
-
-
 
 
     def Parse(self):
