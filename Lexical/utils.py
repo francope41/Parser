@@ -117,17 +117,29 @@ class DecafTokenizer:
         if self.tokens:
             ocur_count = 0
             for token in self.tokens:
-                if self.paterString.search(token) or self.paternKeywords.search(token): #Get more than one ocurrance
+
+                if self.paterString.search(token) or self.paternKeywords.search(token) or self.paternSpecialChar.search(token): #Get more than one ocurrance
                     #Get the index location of every occurrence of a token
-                    m = [match.start() for match in re.finditer(token, line)]
+                    try:
+                        m = [match.start() for match in re.finditer(token, line)]
+
+                    except:
+                        m = [match.start() for match in re.finditer("\{}".format(token), line)]
+                        #print(m)
+
                     #If more than one occurrence get the first index and increment count occurrences
                     if len(m)>1 and ocur_count == 0:
                         m = m[0]
                         ocur_count+=1
                     #If more than one occurrence and already counted one occurrence get next occurrence index and increment count
                     elif len(m)>1 and ocur_count > 0:
-                        m = m[ocur_count]
-                        ocur_count+= 1
+                        try:
+                            m = m[ocur_count]
+                            ocur_count+= 1
+                        except:
+                            ocur_count = 0
+                            m = m[ocur_count]
+                            ocur_count +=1
                     else:
                         #If just one occurrence get that index occurrence
                         m = m[0]
@@ -137,10 +149,11 @@ class DecafTokenizer:
                     disordered_Tokens.append((token,m))
 
             #Sort tokens based on index location on line
+            # print(disordered_Tokens)
             Sorted_Tokens = sorted(disordered_Tokens, key=lambda item:item[1])
             for tk in Sorted_Tokens:
                 Ordered_Tokens.append(tk[0]) #Get the tokens without index into a list and return
-                
+            # print(Ordered_Tokens)
             return Ordered_Tokens
 
     def get_RegEx(self):

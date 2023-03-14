@@ -29,15 +29,20 @@ class Parser:
     def Program(self):
         "Program : Decl+"
         print("\n   Program: ")
-        while self.zcount <= len(self.tokens):
+        # while self.zcount <= len(self.tokens):
+        #     self.Decl()
+        #     self.zcount+=1
+            #print("Cur Token",self.curr_token)
+        while self.curr_token is not None:
             self.Decl()
-            self.zcount+=1
+            # self.zcount+=1
+        #print("Cur Token",self.curr_token)
 
     def Decl(self):
         "Decl : VariableDecl | FunctionDecl"
         first_tkn = self.curr_token
-        curr_type = self.GetType()
-        if curr_type is not False: #Check if it is instance
+        curr_type, mode = self.GetType()
+        if curr_type is not False and mode == "Type": #Check if it is instance
             self.Next()
             next_tkn = self.curr_token
             if next_tkn[1] == "T_Identifier":
@@ -74,10 +79,14 @@ class Parser:
                     print("  {}                   Identifier: {}".format(Lterm[2], Lterm[0]))
                     print("  {}               Operator: {} ".format(operator[2], operator[0]))
                     self.AritmeticExpression(NewLterm,Newoperator,NewRterm)
-            
+
+        elif curr_type is not False and mode =="Keywrd":
+            formating = str.replace(self.curr_token[0],self.curr_token[0][0],(self.curr_token[0][0]).upper(),1)
+            Statement_Type = methodcaller(str(formating+"Stmt"))
+            Statement_Type(self)
 
         else:
-            print("Report SyntaxErr") #Create syntax error function
+            self.curr_token = None
 
     def VariableDecl(self, first_tkn,next_tkn):
         "Decl : Variable ;"
@@ -130,11 +139,15 @@ class Parser:
         #print("eo", self.curr_token)
 
     def GetType(self):
-        if (self.curr_token is not None and self.curr_token[1] == "T_Void" or self.curr_token[1] == "T_Int" or self.curr_token[1] == "T_Double" or self.curr_token[1] == "T_String" 
-            or self.curr_token[1] == "T_Bool"):
-            return self.curr_token
+        keyword = ['while','if','else','return','break', 'null', 'for', 'Print', 'ReadInteger', 'ReadLine']
+
+        if (self.curr_token is not None and self.curr_token[1] == "T_Void" or self.curr_token[1] == "T_Int" or
+            self.curr_token[1] == "T_Double" or self.curr_token[1] == "T_String" or self.curr_token[1] == "T_Bool"):
+            return self.curr_token , 'Type'
+        elif (self.curr_token is not None and self.curr_token[0] in keyword):
+            return self.curr_token, "Keywrd"
         else:
-            return False
+            return False , False
 
     def Formals(self):
         'Formals : Variable+, | ϵ'
@@ -173,7 +186,19 @@ class Parser:
         self.Next()
         if self.curr_token[0] == "(":
             self.Next() 
-            print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
+            if self.curr_token[1] == "T_StringConstant":
+                print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
+            elif self.curr_token[1] == "T_Identifier":
+                print("  {}            (args) Call: ".format(self.curr_token[2]))
+                print("  {}               Identifier: {}".format(self.curr_token[2],self.curr_token[0]))
+                self.Next()
+                if self.curr_token[0] == "(":
+                    self.Next()
+                    if self.curr_token[1]== "T_Identifier":
+                        print("  {}               (actuals) FieldAccess: ".format(self.curr_token[2]))
+                        print("  {}                  Identifier: {}".format(self.curr_token[2],self.curr_token[0]))
+
+
 
     def ReturnStmt(self):
         print("  {}         ReturnStmt: ".format(self.curr_token[2]))
@@ -203,18 +228,16 @@ class Parser:
         print("  {}               FieldAccess: ".format(Rterm[2]))
         print("  {}                   Identifier: {}".format(Rterm[2], Rterm[0]))
         self.Next()
-        if self.curr_token[0] == ")":
-            pass
-            #print(")")
-        else:
-            print("sintax error ar exp )")
-        self.Next()
         if self.curr_token[0] == ";":
-            #print(";")
-            pass
+            self.Next()
+        elif self.curr_token[0] == ")":
+            self.Next()
+            if self.curr_token[0] == ";":
+                self.Next()
+            else:
+                print("sintax error ar exp ;")
         else:
-            print("sintax error ar exp ;")
-        self.Next()
+            print("sintax error ar exp")
 
     def AssignExpression(self, Lterm, operator, Rterm, swch = 0):
         print("  {}         AssignExpr: ".format(self.curr_token[2]))
