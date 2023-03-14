@@ -6,6 +6,7 @@ from operator import methodcaller
 #Tokens item come as an array of 3 alements [Token, Type, Location]
 class Parser:
     def __init__(self, tokens):
+        self.zcount = 0
         self.loc = 0
         self.tokens = tokens
         self.token_lst = [list(x) for x in self.tokens]
@@ -28,17 +29,15 @@ class Parser:
     def Program(self):
         "Program : Decl+"
         print("\n   Program: ")
-        self.Decl()
-        if self.curr_token is not None:
+        while self.zcount <= len(self.tokens):
             self.Decl()
-        else:
-            print("ERROR")
+            self.zcount+=1
 
     def Decl(self):
         "Decl : VariableDecl | FunctionDecl"
         first_tkn = self.curr_token
         curr_type = self.GetType()
-        if curr_type is not False:
+        if curr_type is not False: #Check if it is instance
             self.Next()
             next_tkn = self.curr_token
             if next_tkn[1] == "T_Identifier":
@@ -46,16 +45,46 @@ class Parser:
                 next_next_tkn = self.curr_token
                 if next_next_tkn[0] == "(":
                     self.FunctionDecl(first_tkn,next_tkn)
-                else:
+
+                elif next_next_tkn[0] == ";":
                     self.VariableDecl(first_tkn,next_tkn)
-            else:
-                print("Report SyntaxErr") #Create syntax error function
+
+        elif self.curr_token[1] == "T_Identifier": #Check if is Assign
+            Lterm = self.curr_token
+            self.Next()
+            operator = self.curr_token
+            if operator[0] == "+" or operator[0] == "-" or operator[0] == "/" or operator[0] == "*": 
+                self.Next()
+                Rterm = self.curr_token
+                self.AritmeticExpression(Lterm, operator, Rterm)
+            
+            elif operator[0] == "=":
+                self.Next()
+                if self.curr_token[1] == "T_IntConstant":
+                    Rterm = self.curr_token
+                    self.AssignExpression(Lterm,operator,Rterm)
+                else:
+                    NewLterm = self.curr_token
+                    self.Next()
+                    Newoperator = self.curr_token
+                    self.Next()
+                    NewRterm = self.curr_token
+                    print("  {}         AssignExpr: ".format(self.curr_token[2]))
+                    print("  {}               FieldAccess: ".format(Lterm[2]))
+                    print("  {}                   Identifier: {}".format(Lterm[2], Lterm[0]))
+                    print("  {}               Operator: {} ".format(operator[2], operator[0]))
+                    self.AritmeticExpression(NewLterm,Newoperator,NewRterm)
+            
+
+        else:
+            print("Report SyntaxErr") #Create syntax error function
 
     def VariableDecl(self, first_tkn,next_tkn):
         "Decl : Variable ;"
         if self.curr_token[0] ==";":
                 print("  {}   VarDecl: ".format(self.curr_token[2]))
                 self.Variable(first_tkn,next_tkn)
+        
         else:
             raise Exception()
         
@@ -80,7 +109,12 @@ class Parser:
                 if self.curr_token[0] =="{":
                     self.StmtBlock()
                 else:
-                    print("Syntax func {")    
+                    print("Syntax func {")
+                
+                if self.curr_token[0] == "}":
+                    self.Next()
+                else:
+                    print("Syntax error not closing }")
 
             else:
                 print("Syntax func )")    
@@ -93,6 +127,7 @@ class Parser:
             print("            Type: {}".format(first_tkn[0]))
             print("  {}         Identifier: {}".format(next_tkn[2],next_tkn[0]))
         self.Next()
+        #print("eo", self.curr_token)
 
     def GetType(self):
         if (self.curr_token is not None and self.curr_token[1] == "T_Void" or self.curr_token[1] == "T_Int" or self.curr_token[1] == "T_Double" or self.curr_token[1] == "T_String" 
@@ -121,14 +156,14 @@ class Parser:
         curr_statement = self.curr_token
         if curr_statement[0] in statemen_types:
             formating = str.replace(curr_statement[0],curr_statement[0][0],(curr_statement[0][0]).upper(),1)
-            #print("            {}: ".format(formating+"Stmt"))
             if curr_statement[0] in statemen_types: #PrintStmt
                 Statement_Type = methodcaller(str(formating+"Stmt"))
                 Statement_Type(self)
-        
+                
             else:
                 self.StmtBlock()
-        self.Next()
+
+        #self.Next()
 
     def ifStmt(self):
         pass
@@ -144,8 +179,61 @@ class Parser:
         print("  {}         ReturnStmt: ".format(self.curr_token[2]))
         self.Next()
         if self.curr_token[0] == "(":
-            self.Next() #FIGURE OUT ARITMETIC EXPRESION
-            
+            if self.curr_token[0] != ")":
+                self.Next()
+                if self.curr_token[1] == "T_Identifier":
+                    Lterm = self.curr_token
+                    self.Next()
+                    if (str(self.curr_token[0]) == "+" or str(self.curr_token[0]) == "-" or 
+                        str(self.curr_token[0]) == "*" or str(self.curr_token[0]) == "/"):
+                        operator = self.curr_token
+                        self.Next()
+                        if self.curr_token[1] == "T_Identifier":
+                            Rterm = self.curr_token
+
+                            self.AritmeticExpression(Lterm,operator,Rterm)
+        else:
+            pass
+
+    def AritmeticExpression(self,Lterm,operator,Rterm):
+        print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
+        print("  {}               FieldAccess: ".format(Lterm[2]))
+        print("  {}                   Identifier: {}".format(Lterm[2], Lterm[0]))
+        print("  {}               Operator: {} ".format(operator[2], operator[0]))
+        print("  {}               FieldAccess: ".format(Rterm[2]))
+        print("  {}                   Identifier: {}".format(Rterm[2], Rterm[0]))
+        self.Next()
+        if self.curr_token[0] == ")":
+            pass
+            #print(")")
+        else:
+            print("sintax error ar exp )")
+        self.Next()
+        if self.curr_token[0] == ";":
+            #print(";")
+            pass
+        else:
+            print("sintax error ar exp ;")
+        self.Next()
+
+    def AssignExpression(self, Lterm, operator, Rterm, swch = 0):
+        print("  {}         AssignExpr: ".format(self.curr_token[2]))
+        print("  {}               FieldAccess: ".format(Lterm[2]))
+        print("  {}                   Identifier: {}".format(Lterm[2], Lterm[0]))
+        print("  {}               Operator: {} ".format(operator[2], operator[0]))
+        print("  {}               IntConstant: {}".format(Rterm[2],Rterm[0]))
+        
+
+        self.Next()
+        if self.curr_token[0] == ";":
+            #print(";")
+            pass
+        else:
+            print("sintax error ar exp ;")
+        
+        self.Next()
+
+
 
     def Parse(self):
         if self.curr_token is None:
