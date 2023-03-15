@@ -4,7 +4,7 @@ class DecafTokenizer:
     def __init__(self):
         #Define Rules for REGEX
         self.Keywords = "^void$|int|^double$|^bool$|^string$|^null$|^for$|^while$|^if$|^else$|^return$|^break$|Print|^ReadInteger$|^ReadLine$|^true$|^false$"
-        self.Operators = "\++|\-|\*|/|%|<=|>=|[||]{2}|[==]{2}|="
+        self.Operators = "\++|\-|\*|/|%|<=|>=|[||]{2}|[==]{2}|=|[&&]{2}"
         self.Int = '[0-9]+'
         self.Int_Hex = '0[xX][0-9A-Fa-f]+'
         self.Float = '[0-9]+\.[0-9]*'
@@ -118,7 +118,8 @@ class DecafTokenizer:
             ocur_count = 0
             for token in self.tokens:
 
-                if self.paterString.search(token) or self.paternKeywords.search(token) or self.paternSpecialChar.search(token): #Get more than one ocurrance
+                if (self.paterString.search(token) or self.paternKeywords.search(token) or 
+                    self.paternSpecialChar.search(token) or self.paternInt.search(token) or self.paterFloat.search(token)): #Get more than one ocurrance
                     #Get the index location of every occurrence of a token
                     try:
                         m = [match.start() for match in re.finditer(token, line)]
@@ -153,7 +154,7 @@ class DecafTokenizer:
             Sorted_Tokens = sorted(disordered_Tokens, key=lambda item:item[1])
             for tk in Sorted_Tokens:
                 Ordered_Tokens.append(tk[0]) #Get the tokens without index into a list and return
-            # print(Ordered_Tokens)
+            #print(Ordered_Tokens)
             return Ordered_Tokens
 
     def get_RegEx(self):
@@ -178,7 +179,7 @@ class DecafTokenizer:
 
         Returns 5 Dictionaries
         """
-        operators = {'=': "'='",'+' : "'+'",  '-':"'-'", '*':"'*'",  '/':"'/'", '%':"'%'", '<=':'T_LessEqual', '>=':'T_GreaterEqual','==':'T_Equal', '||':'T_Or'}
+        operators = {'=': "'='",'+' : "'+'",  '-':"'-'", '*':"'*'",  '/':"'/'", '%':"'%'", '<=':'T_LessEqual', '>=':'T_GreaterEqual','==':'T_Equal', '||':'T_Or', '&&':'T_And'}
         operators_key = operators.keys()
 
         data_type = {'void':'T_Void', 'int' : 'T_Int', 'double': 'T_Double', 'string':'T_String'}

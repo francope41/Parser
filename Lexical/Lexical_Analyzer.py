@@ -82,7 +82,7 @@ class Lex_Analyzer:
                         col_start = m
                         col_end = m+len(token)
                         #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_StringConstant (value = {})'.format(token))
-                        out_tokens.append([token,'T_StringConstant',line_count])#Token, Type, Location
+                        out_tokens.append([token,'T_String',line_count])#Token, Type, Location
 
                     else:
                         #Search for decaf Keywords
@@ -126,11 +126,11 @@ class Lex_Analyzer:
 
                                 if 'E' in token or 'e' in token:
                                     #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_DoubleConstant (value = ','%.0f'%float(token)+")")
-                                    out_tokens.append([str('%.0f'%float(token)),"T_DoubleConstant",line_count])#Token, Type, Location
+                                    out_tokens.append([str('%.0f'%float(token)),"T_Double",line_count])#Token, Type, Location
 
                                 else:
                                     #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_DoubleConstant (value = {})'.format(float(token)))
-                                    out_tokens.append([token,"T_DoubleConstant",line_count])#Token, Type, Location
+                                    out_tokens.append([token,"T_Double",line_count])#Token, Type, Location
 
                                 float_token = True
                             else:
@@ -149,26 +149,26 @@ class Lex_Analyzer:
                                         if "+" in token or "-" in token:
                                             token = token[1:]
                                             #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_IntConstant (value = {})'.format(int(token)))
-                                            out_tokens.append([token,"T_IntConstant",line_count])#Token, Type, Location
+                                            out_tokens.append([token,"T_Int",line_count])#Token, Type, Location
                                         else:
                                             #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_IntConstant (value = {})'.format(int(token)))
-                                            out_tokens.append([token,"T_IntConstant",line_count])#Token, Type, Location
+                                            out_tokens.append([token,"T_Int",line_count])#Token, Type, Location
 
                                 except:
                                     if "+" in token or "-" in token:
                                             token = token[1:]
                                             #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_IntConstant (value = {})'.format(int(token)))
-                                            out_tokens.append([token,"T_IntConstant",line_count])#Token, Type, Location
+                                            out_tokens.append([token,"T_Int",line_count])#Token, Type, Location
 
                                     else:
                                         #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_IntConstant (value = {})'.format(int(token)))
-                                        out_tokens.append([token,"T_IntConstant",line_count])#Token, Type, Location
+                                        out_tokens.append([token,"T_Int",line_count])#Token, Type, Location
 
 
                             else:
                                 try:
                                     #print(token, (11-len(token))*" ", "line", line_count, 'cols', str(col_start+1)+'-'+ str(col_end), 'is T_IntConstant (value = {})'.format(int(token)))
-                                    out_tokens.append([token,"T_IntConstant",line_count])#Token, Type, Location
+                                    out_tokens.append([token,"T_Int",line_count])#Token, Type, Location
 
                                 except:
                                     pass
