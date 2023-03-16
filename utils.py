@@ -94,7 +94,18 @@ class Parser:
             Statement_Type(self)
 
         else:
-            self.Call()
+            if self.curr_token[0] == ";":
+                try:
+                    self.Next()
+                except:
+                    self.curr_token = None
+            if self.curr_token[0] == "}":
+                try:
+                    self.Next()
+                except:
+                    self.curr_token = None
+            else:
+                self.Call()
 
     def VariableDecl(self, first_tkn,next_tkn):
         "Decl : Variable ;"
@@ -431,7 +442,9 @@ class Parser:
 
     def Call(self):
         self.Next()
-        if self.curr_token[0] != "}":
+        if self.curr_token[1] != "T_Identifier":
+            pass
+        else:
             print("  {}         Call: ".format(self.curr_token[2]))
             print("  {}            Identifier: {}".format(self.curr_token[2],self.curr_token[0]))
             self.Next()
@@ -461,12 +474,6 @@ class Parser:
                         print("erorhere")
                 else:
                     print("eroro")
-        else:
-            try:
-                self.Next()
-            except:
-                self.curr_token = None
-                
 
 
 
