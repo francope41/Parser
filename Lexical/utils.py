@@ -90,7 +90,7 @@ class DecafTokenizer:
                 self.tokens.append(tk)
 
         #Check if line has an Identifier
-        if self.paternIdentifiers.search(self.line):
+        if self.paternIdentifiers.search(self.line) and not self.paterString.search(self.line) :
             IdentifierTokens = [tk for tk in re.findall(self.paternIdentifiers,self.line)]
             for tk in IdentifierTokens:
                 #Clean line so that tokens do not repeat in other classes
