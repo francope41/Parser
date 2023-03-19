@@ -93,6 +93,9 @@ class Parser:
             Statement_Type = methodcaller(str(formating+"Stmt"))
             Statement_Type(self)
 
+        elif self.curr_token[0] == ";":
+            self.Next()
+
         else:
             if self.curr_token[0] == ";":
                 try:
@@ -285,6 +288,15 @@ class Parser:
 
                     self.AritmeticExpression(Lterm,operator,Rterm)
 
+    def ReadIntegerStmt(self):
+        print("  {}            ReadIntegerExpr: ".format(self.curr_token[2]))
+        if self.curr_token[0] == ")":
+            self.Next()
+            if self.curr_token[0]==";":
+                self.Next()
+        else:
+            print("ReadInteger Sintax error")
+
     def AritmeticExpression(self,Lterm,operator,Rterm):
         print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
         #Check Left term in aritmetic expression
@@ -301,7 +313,7 @@ class Parser:
 
         #Check after Right term
         self.Next()
-        if self.curr_token[0] == ";" or self.curr_token[0]==")":
+        if self.curr_token[0] in [";",")"]:
             if Rterm[1] == "T_Identifier":
                 print("  {}               FieldAccess: ".format(Rterm[2]))
                 print("  {}                   Identifier: {}".format(Rterm[2], Rterm[0]))
@@ -309,10 +321,40 @@ class Parser:
                 print("  {}               IntConstant: {}".format(Rterm[2],Rterm[0]))
             else:
                 print("  {}               DoubleConstant: {}".format(Rterm[2],Rterm[0]))
-            self.Next()
+
         else:
-            self.loc -= 1
-            self.curr_token = self.tokens[self.loc] #Go back one token
+            if self.curr_token[0] in ["*","/"]:
+                Lterm = Rterm
+                operator = self.curr_token
+                self.Next()
+                Rterm = self.curr_token
+                self.AritmeticExpression(Lterm,operator,Rterm)
+            elif self.curr_token[0] in ["+","-"]:
+                if Rterm[1] == "T_Identifier":
+                    print("  {}               FieldAccess: ".format(Rterm[2]))
+                    print("  {}                   Identifier: {}".format(Rterm[2], Rterm[0]))
+                elif Rterm[1] == "T_Int":
+                    print("  {}               IntConstant: {}".format(Rterm[2],Rterm[0]))
+                else:
+                    print("  {}               DoubleConstant: {}".format(Rterm[2],Rterm[0]))
+
+                print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
+                self.Next()
+            
+            if self.curr_token[0] == "(":
+                self.Next()
+                Lterm = self.curr_token
+                self.Next()
+                operator  = self.curr_token
+                self.Next()
+                Rterm = self.curr_token
+                self.AritmeticExpression(Lterm,operator,Rterm)
+
+            if self.curr_token[0]==")":
+                self.Next()
+            if self.curr_token[0] == ";":
+                self.Next()
+
 
         # if self.curr_token[0] != ";":
         #     if self.curr_token[0] in ["*","/"]:
@@ -324,7 +366,7 @@ class Parser:
         #         print("  {}                IntConstant: {}".format(Lterm[2],Lterm[0]))
         #         print("  {}                Operator: {}".format(operator[2],operator[0]))
         #         print("  {}                IntConstant: {}".format(Rterm[2],Rterm[0]))
-                
+
         #         self.Next()
         #         if self.curr_token[0] != ";":
         #             if self.curr_token[0] in ["+","-"]:
@@ -422,15 +464,6 @@ class Parser:
             else:
                 print("erro de lamader")
 
-    def ReadIntegerStmt(self):
-        print("  {}            ReadIntegerExpr: ".format(self.curr_token[2]))
-        if self.curr_token[0] == ")":
-            self.Next()
-            if self.curr_token[0]==";":
-                self.Next()
-        else:
-            print("ReadInteger Sintax error")
-
     def Actuals(self, actual_type, prev_tkn):
         if actual_type == "FieldAccess":
             print("  {}            (actuals) {}: ".format(prev_tkn[2],actual_type))
@@ -476,7 +509,6 @@ class Parser:
                 print("  {}                  FieldAccess: ".format(self.curr_token[2]))
                 print("  {}                     Identifier: {}".format(self.curr_token[2],self.curr_token[0]))
 
-
     def Call(self):
         self.Next()
         if self.curr_token[1] != "T_Identifier":
@@ -511,7 +543,6 @@ class Parser:
                         print("erorhere")
                 else:
                     print("eroro")
-
 
     def Parse(self):
         if self.curr_token is None:
