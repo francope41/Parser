@@ -197,10 +197,10 @@ class Lex_Analyzer:
         out_tokens = np.array(out_tokens)
         out_lines = np.array(out_lines)
         save_file = open("arr","wb")
-        save_file_lines = open("lines_read","wb")
+        #save_file_lines = open("lines_read","wb")
         np.save(save_file, out_tokens)
-        np.save(save_file_lines, out_lines)
+        #np.save(save_file_lines, out_lines)
         save_file.close
-        save_file_lines.close
+        #save_file_lines.close
 
 Lex_Analyzer(sys.argv[1])

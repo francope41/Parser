@@ -119,7 +119,8 @@ class DecafTokenizer:
             for token in self.tokens:
 
                 if (self.paterString.search(token) or self.paternKeywords.search(token) or 
-                    self.paternSpecialChar.search(token) or self.paternInt.search(token) or self.paterFloat.search(token)): #Get more than one ocurrance
+                    self.paternSpecialChar.search(token) or self.paternInt.search(token) or 
+                    self.paterFloat.search(token) or self.paternOperators.search(token)): #Get more than one ocurrance
                     #Get the index location of every occurrence of a token
                     try:
                         m = [match.start() for match in re.finditer(token, line)]
