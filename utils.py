@@ -15,7 +15,7 @@ class Parser:
         self.KeyLogical = [ '<','<=','>','>=','==','!=','&&','||','!']
         #Open and read inputed file
         #lines_file = open("lines_read", "rb")
-        self.lines = np.load('arr')
+        #self.lines = np.load('arr')
         if len(self.tokens) > 0:
             self.curr_token = self.tokens[self.loc]
         else:

@@ -1,0 +1,132 @@
+class Parser:
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.current_token = None
+        self.index = -1
+        self.advance()
+
+    def advance(self):
+        self.index += 1
+        if self.index < len(self.tokens):
+            self.current_token = self.tokens[self.index]
+        else:
+            self.current_token = None
+
+    def parse(self):
+        ast = self.program()
+        if self.current_token is not None:
+            raise SyntaxError("Unexpected token at end of input")
+        return ast
+
+    def program(self):
+        ast = {
+            "type": "program",
+            "body": [],
+        }
+        while self.current_token is not None:
+            ast["body"].append(self.declaration())
+        return ast
+
+    def declaration(self):
+        if self.current_token.type == "class":
+            return self.class_declaration()
+        else:
+            return self.function_declaration()
+
+    def class_declaration(self):
+        self.consume("class")
+        name = self.consume("identifier").value
+        self.consume("{")
+        body = []
+        while self.current_token.type != "}":
+            body.append(self.field_declaration())
+        self.consume("}")
+        return {
+            "type": "class_declaration",
+            "name": name,
+            "body": body,
+        }
+
+    def field_declaration(self):
+        type = self.consume("type").value
+        name = self.consume("identifier").value
+        if self.current_token.type == ";":
+            self.consume(";")
+            return {
+                "type": "variable_declaration",
+                "name": name,
+                "type": type,
+            }
+        else:
+            self.consume("=")
+            value = self.expression()
+            self.consume(";")
+            return {
+                "type": "variable_declaration",
+                "name": name,
+                "type": type,
+                "value": value,
+            }
+
+    def function_declaration(self):
+        type = self.consume("type").value
+        name = self.consume("identifier").value
+        self.consume("(")
+        params = []
+        while self.current_token.type != ")":
+            params.append(self.parameter())
+            if self.current_token.type == ",":
+                self.consume(",")
+        self.consume(")")
+        body = self.block()
+        return {
+            "type": "function_declaration",
+            "name": name,
+            "type": type,
+            "params": params,
+            "body": body,
+        }
+
+    def parameter(self):
+        type = self.consume("type").value
+        name = self.consume("identifier").value
+        return {
+            "type": "variable_declaration",
+            "name": name,
+            "type": type,
+        }
+
+    def block(self):
+        self.consume("{")
+        statements = []
+        while self.current_token.type != "}":
+            statements.append(self.statement())
+        self.consume("}")
+        return {
+            "type": "block",
+            "body": statements,
+        }
+
+    def statement(self):
+        if self.current_token.type == "if":
+            return self.if_statement()
+        elif self.current_token.type == "while":
+            return self.while_statement()
+        elif self.current_token.type == "return":
+            return self.return_statement()
+        else:
+            return self.expression_statement()
+
+    def if_statement(self):
+        self.consume("if")
+        self.consume("(")
+        condition = self.expression()
+        self.consume(")")
+        then_branch = self.statement()
+        if self.current_token.type == "else":
+            self.consume("else")
+            else_branch = self.statement()
+        else:
+            else_branch = None
+        return {
+            "type":
