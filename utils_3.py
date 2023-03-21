@@ -91,16 +91,27 @@ class Parser:
             if self.curr_token[1] == "T_Identifier":
                 ident = self.curr_token
                 return type_tk,ident
+            elif self.curr_token[0] in [")",";","}"]:
+                self.Next()
             else:
                 print("passed Variable")
                 raise Exception("passed Variable")
         except:
+            exit()
+            raise Exception()
             if self.curr_token[0] == "T_Identifier":
                 print("Hello")
 
     def getType(self):
         if self.curr_token[1] in ['T_Void','T_Int','T_Double','T_String','T_Bool']:
             return self.curr_token
+        
+        elif self.curr_token[0] in [")",";","}"]:
+            self.Next()
+
+        elif self.curr_token[0] in ["return"]:
+            self.ReturnStmt()
+
         else:
             print("passed get type")
             raise Exception("passed get type")
@@ -149,21 +160,56 @@ class Parser:
         if self.curr_token[0] == "return":
             print("  {}         ReturnStmt: ".format(self.curr_token[2]))
             self.Next()
-        self.Expr()       
+            if self.curr_token[0] == ";":
+                print("               Empty: ")
+            else:
+                self.Expr()       
 
     def PrintStmt(self):
         print("            PrintStmt: ")
         self.Next()
         if self.curr_token[0] == "(":
             self.Next()
-
         self.Expr()
+
+    def WhileStmt(self):
+        print("            WhileStmt: ")
+        if self.curr_token[0] == "(":
+            self.Next()
+        self.Expr()
+
+    def IfStmt(self):
+        print("                  IfStmt: ")
+        self.Next()
+        if self.curr_token[0] == "(":
+            self.Next()
+        self.Expr()
+
+        if self.curr_token[0] == "else":
+            print("PTASSS")
+
+    def BreakStmt(self):
+        print("  {}                  (then) BreakStmt: ".format(self.curr_token[2]))
+        self.Next()
+        if self.curr_token[0] == ";":
+            self.Next()
 
     def ReadIntegerStmt(self):
         print("  {}            ReadIntegerExpr: ".format(self.curr_token[2]))
 
+    def ForStmt(self):
+        print("            ForStmt: ")
+        self.Next()
+        if self.curr_token[0] == "(":
+            self.Next()
+            if self.curr_token[0] == ";":
+                print("               (init) Empty: ")
+                self.Next()
+                self.Expr()
+            else:
+                self.Expr()
+    
     def Expr(self):
-        # print(self.curr_token)
         if self.curr_token[0] == "(":
             self.Next()
             while self.curr_token[0] != ")":
@@ -204,6 +250,8 @@ class Parser:
                 elif LValue[1] == "T_String":
                     print("  {}            (args) StringConstant: {}".format(LValue[2],LValue[0]))
 
+                elif LValue[1] in ["T_BoolConstant (value = true)","T_BoolConstant (value = false)"]:
+                    print("  {}               BoolConstant: {}".format(LValue[2],LValue[0]))
                 else:
                     self.Call(LValue)
 
@@ -251,6 +299,9 @@ class Parser:
                 elif LValue[1] == "T_String":
                     print("  {}            (args) StringConstant: {}".format(LValue[2],LValue[0]))
 
+                elif LValue[1] in ["T_BoolConstant (value = true)","T_BoolConstant (value = false)"]:
+                    print("  {}               BoolConstant: {}".format(LValue[2],LValue[0]))
+
                 else:
                     self.Call(LValue)
         
@@ -283,6 +334,9 @@ class Parser:
 
                 elif LValue[1] == "T_String":
                     print("  {}            (args) StringConstant: {}".format(LValue[2],LValue[0]))
+
+                elif LValue[1] in ["T_BoolConstant (value = true)","T_BoolConstant (value = false)"]:
+                    print("  {}               BoolConstant: {}".format(LValue[2],LValue[0]))
 
                 print("  {}                  Operator: {}".format(operator[2],operator[0]))
 
@@ -344,6 +398,9 @@ class Parser:
             else:
                 self.Expr()
 
+        elif self.curr_token[0] == "else":
+            self.Next()
+            self.Expr()
 
         else:
             raise Exception()
@@ -378,12 +435,19 @@ class Parser:
         self.Next()
         if self.curr_token[0] in [";",")",","]:
             if RValue[1] == "T_Identifier":
-                print("  {}               FieldAccess: ".format(RValue[2]))
+                print("  {}               (actuals) FieldAccess: ".format(RValue[2]))
                 print("  {}                   Identifier: {}".format(RValue[2], RValue[0]))
             elif RValue[1] == "T_Int":
                 print("  {}               IntConstant: {}".format(RValue[2],RValue[0]))
-            else:
+
+            elif RValue[1] == "T_Double":
                 print("  {}               DoubleConstant: {}".format(RValue[2],RValue[0]))
+
+            elif RValue[1] == "T_String":
+                print("  {}            (args) StringConstant: {}".format(RValue[2],RValue[0]))
+            
+            elif RValue[1] in ["T_BoolConstant (value = true)","T_BoolConstant (value = false)"]:
+                    print("  {}               BoolConstant: {}".format(RValue[2],RValue[0]))
 
         else:
             self.Back()
@@ -405,14 +469,20 @@ class Parser:
 
         self.Next()
         if self.curr_token[0] == ";": 
-            if  RValue[1] == "T_Identifier":
-                print("  {}               FieldAccess: ".format(RValue[2]))
+            if RValue[1] == "T_Identifier":
+                print("  {}               (actuals) FieldAccess: ".format(RValue[2]))
                 print("  {}                   Identifier: {}".format(RValue[2], RValue[0]))
             elif RValue[1] == "T_Int":
                 print("  {}               IntConstant: {}".format(RValue[2],RValue[0]))
-            else:
+
+            elif RValue[1] == "T_Double":
                 print("  {}               DoubleConstant: {}".format(RValue[2],RValue[0]))
 
+            elif RValue[1] == "T_String":
+                print("  {}            (args) StringConstant: {}".format(RValue[2],RValue[0]))
+
+            elif RValue[1] in ["T_BoolConstant (value = true)","T_BoolConstant (value = false)"]:
+                    print("  {}               BoolConstant: {}".format(RValue[2],RValue[0]))
         else:
             self.Back()
             self.Expr()
@@ -431,7 +501,7 @@ class Parser:
                 self.Back() #Go back twice since Variable decl always moves forward twice
         except:
             pass
-        
+
     def Parse(self):
         if self.curr_token is None:
             return None

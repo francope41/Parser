@@ -4,7 +4,7 @@ void main() {
 
   a = 0;
   while (a < 10) {
-	Print(a, " ");
+	Print(a, sex);
 	a = a + 1;
 	if (a == 5) break;
   }
@@ -14,8 +14,8 @@ void main() {
      done = true;
 
   for (; a <= 10 || done; a = a + 1) {
-     Print(a, " ");
-     if (a == 10) a;
+     Print(a, sex);
+     if (a == 10) x;
   }
   return;
 }
