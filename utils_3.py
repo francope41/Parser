@@ -14,7 +14,10 @@ class Parser:
     def Next(self):
         try:
             self.loc += 1
-            self.curr_token = self.tokens[self.loc]
+            try:
+                self.curr_token = self.tokens[self.loc]
+            except:
+                quit()
         except StopIteration:
             self.curr_token = None
     
@@ -129,17 +132,16 @@ class Parser:
                 
                     self.Next()
 
-
     def Stmt(self):
-        try:
-            self.Expr()
-        except:
-            pass
-        
         try:
             formating = str.replace(self.curr_token[0],self.curr_token[0][0],(self.curr_token[0][0]).upper(),1)
             Statement_Type = methodcaller(str(formating+"Stmt"))
             stmt_vals = Statement_Type(self)
+        except:
+            pass
+        
+        try:
+            self.Expr()
         except:
             pass
 
@@ -149,6 +151,14 @@ class Parser:
             self.Next()
         self.Expr()       
 
+    def PrintStmt(self):
+        print("            PrintStmt: ")
+        self.Next()
+        if self.curr_token[0] == "(":
+            self.Next()
+
+        self.Expr()
+
     def Expr(self):
         if self.curr_token[0] == "(":
             self.Next()
@@ -157,9 +167,8 @@ class Parser:
                 self.Next()
             
             self.Next()
-        
 
-        if self.curr_token[1] == "T_Identifier":
+        elif self.curr_token[1] == "T_Identifier":
             LValue = self.curr_token
             self.Next()
             if self.curr_token[0] in ['+','-','*','/','%']:
@@ -168,21 +177,83 @@ class Parser:
                 RValue = self.curr_token
                 self.AritmeticExpr(LValue,operator,RValue)
 
-                
             elif self.curr_token[0] in ['=']:
                 operator = self.curr_token
                 self.Next()
                 RValue = self.curr_token
-                self.AssignExpr(LValue,operator,RValue)
+                self.AssignExpr(LValue,operator,RValue)    
 
-        
+            elif self.curr_token[0] == "(":
+                #print(" {}               Identifier: {}".format(LValue[2],LValue[0]))
+                self.Call(LValue)   
+
+            elif self.curr_token[0] in [")",";",","]:
+                if LValue[1] == "T_Identifier":
+                    print("  {}               (actuals) FieldAccess: ".format(LValue[2]))
+                    print("  {}                   Identifier: {}".format(LValue[2], LValue[0]))
+                elif LValue[1] == "T_Int":
+                    print("  {}               IntConstant: {}".format(LValue[2],LValue[0]))
+
+                elif LValue[1] == "T_Double":
+                    print("  {}               DoubleConstant: {}".format(LValue[2],LValue[0]))
+
+                elif LValue[1] == "T_String":
+                    print("  {}            (args) StringConstant: {}".format(LValue[2],LValue[0]))
+
+                else:
+                    self.Call(LValue)
+
+        elif self.curr_token[0] in ['Print', 'ReadInteger', 'ReadLine']:
+            formating = str.replace(self.curr_token[0],self.curr_token[0][0],(self.curr_token[0][0]).upper(),1)
+            Statement_Type = methodcaller(str(formating+"Stmt"))
+            stmt_vals = Statement_Type(self)
+
+        elif self.curr_token[1] == "T_String":
+            print("  {}            (args) StringConstant: {}".format(self.curr_token[2],self.curr_token[0]))
+            self.Next()
 
         else:
             raise Exception()
-            self.Back()
+
+    def Call(self, LValue):
+        print("  {}            (args) Call: ".format(LValue[2]))
+        print("  {}               Identifier: {}".format(LValue[2],LValue[0]))
+        if self.curr_token[0] == "(":
+            self.Next()
+            while self.curr_token[0] != ")":
+                self.Actuals()
+                self.Next()
+
+    def Actuals(self):
+        self.Expr()
 
     def AritmeticExpr(self,LValue,operator,RValue):
         print("  {}            ArithmeticExpr: ".format(LValue[2]))
+        #Check Left term in aritmetic expression
+        if LValue[1] == "T_Identifier":
+            print("  {}               FieldAccess: ".format(LValue[2]))
+            print("  {}                   Identifier: {}".format(LValue[2], LValue[0]))
+        elif LValue[1] == "T_Int":
+            print("  {}               IntConstant: {}".format(LValue[2],LValue[0]))
+        else:
+            print("  {}               DoubleConstant: {}".format(LValue[2],LValue[0]))
+
+        #Check Operator in aritmetic expression
+        print("  {}               Operator: {} ".format(operator[2], operator[0]))
+
+        #Check after Right term
+        self.Next()
+        if self.curr_token[0] in [";",")",","]:
+            if RValue[1] == "T_Identifier":
+                print("  {}               FieldAccess: ".format(RValue[2]))
+                print("  {}                   Identifier: {}".format(RValue[2], RValue[0]))
+            elif RValue[1] == "T_Int":
+                print("  {}               IntConstant: {}".format(RValue[2],RValue[0]))
+            else:
+                print("  {}               DoubleConstant: {}".format(RValue[2],RValue[0]))
+
+    def AritmeticExpr_Inside(self,LValue,operator,RValue):
+        print("  {}               ArithmeticExpr: ".format(LValue[2]))
         #Check Left term in aritmetic expression
         if LValue[1] == "T_Identifier":
             print("  {}               FieldAccess: ".format(LValue[2]))
@@ -230,8 +301,13 @@ class Parser:
             else:
                 print("  {}               DoubleConstant: {}".format(RValue[2],RValue[0]))
 
-        
-        #We are here rn
+        else:
+            if self.curr_token[0] in ["+","-","*","/","%"]:
+                LValue = RValue
+                operator = self.curr_token
+                self.Next()
+                RValue = self.curr_token
+                self.AritmeticExpr_Inside(LValue,operator,RValue)
 
     def body_VarDecl(self):
         try:
