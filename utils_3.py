@@ -1,4 +1,6 @@
 from operator import methodcaller
+import os
+
 
 class Parser:
     def __init__(self, tokens):
@@ -124,7 +126,11 @@ class Parser:
                 if self.curr_token[0] == ",": 
                     self.Next()
                 else:
-                    type_tk, ident = self.Variable()
+                    try:
+                        type_tk, ident = self.Variable()
+                    except:
+                        self.ErrorVariable()
+
                     formals.append([type_tk,ident])
                     
                     self.Next()
@@ -137,6 +143,9 @@ class Parser:
             while self.curr_token[0] != "}":  
                 if self.curr_token[1] in ['T_Void','T_Int','T_Double','T_String','T_Bool']:
                     self.body_VarDecl()
+
+                elif self.curr_token[0] == "else":
+                    self.ErrorStmtBlock()
 
                 else:
                     self.Stmt()
@@ -501,6 +510,58 @@ class Parser:
                 self.Back() #Go back twice since Variable decl always moves forward twice
         except:
             pass
+
+    def ErrorVariable(self):
+        #print(self.curr_token)
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+
+        try:
+            count = 0
+            while count in range(100):
+                print(LINE_UP, end=LINE_CLEAR)
+                count += 1
+        
+        except:
+            pass
+
+        self.loc -= 1
+        self.curr_token = self.tokens[self.loc]
+        print("")
+        print("*** Error line {}.".format(self.curr_token[2]))
+        line = []
+        for i in self.tokens:
+            if i[2] == self.curr_token[2]:
+                line.append(i[0])
+        line = ' '.join(line)
+        print(line)
+        print(" "*line.find(self.curr_token[0])+"^")
+        print("*** syntax error")
+        print("")
+        print("")
+        exit()
+
+    def ErrorStmtBlock(self):
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+        try:
+            count = 0
+            while count in range(100):
+                print(LINE_UP, end=LINE_CLEAR)
+                count += 1
+        except:
+            pass
+        print("")
+        print("*** Error line {}.".format(self.curr_token[2]))
+        line = []
+        for i in self.tokens:
+            if i[2] == self.curr_token[2]:
+                line.append(i[0])
+        line = ' '.join(line)
+        print("    "+line)
+        print("    "+"^^^^")
+        print("*** syntax error")
+        exit()
 
     def Parse(self):
         if self.curr_token is None:

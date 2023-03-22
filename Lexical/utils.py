@@ -155,7 +155,7 @@ class DecafTokenizer:
             Sorted_Tokens = sorted(disordered_Tokens, key=lambda item:item[1])
             for tk in Sorted_Tokens:
                 Ordered_Tokens.append(tk[0]) #Get the tokens without index into a list and return
-            #print(Ordered_Tokens)
+            print(Ordered_Tokens)
             return Ordered_Tokens
 
     def get_RegEx(self):
