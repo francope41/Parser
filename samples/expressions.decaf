@@ -14,7 +14,7 @@ void main() {
   a = b + 2;
   Print(a, b, d);
   foo(a, d, !true);
-  foo(a + 2.0, d/2.0, x == b && z >= 1.0);
+  foo(a + 2, d/2, a == b && d >= 1.0);
 }
 
 
