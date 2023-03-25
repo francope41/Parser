@@ -10,7 +10,7 @@ class Lex_Analyzer:
 
 
     def Tokenize(self):
-        # Definir los tokens
+        # Define Tokens
         tokens = [
             'VOID','INT','DOUBLE','BOOL','STRING','NULL',
             'FOR','WHILE','IF','ELSE','RETURN','BREAK',
@@ -24,8 +24,8 @@ class Lex_Analyzer:
             'LEFT_BRACE', 'RIGHT_BRACE'
         ]
 
-        # Especificar las expresiones regulares para cada token
-        t_VOID = r'void'
+        # Specify regex for each token
+        t_VOID = r'^void$'
         t_INT = r'int'
         t_DOUBLE = r'double'
         t_BOOL = r'bool'
@@ -69,16 +69,16 @@ class Lex_Analyzer:
         t_LEFT_BRACE = r'{'
         t_RIGHT_BRACE = r'}'
 
-        # Ignorar espacios en blanco y comentarios
+        # Ignore Spaces and Comments
         t_ignore = ' \t\n'
         t_ignore_COMMENT = r'\/\/.*'
 
-        # Manejar errores de tokens inválidos
+        # Invalid token actions
         def t_error(token):
             #print(f'Invalid Token: {token.value[0]}')
             token.lexer.skip(1)
 
-        # Crear un lexer
+        # Create Lexer
         lexer = lex.lex()
 
         #Open and read file to tokenize
@@ -89,11 +89,11 @@ class Lex_Analyzer:
                 self.tokens_list.append([token.value,token.type,token.lineno,token.lexpos])
 
         return self.tokens_list
-
-       
-class Parser:
+  
+class Parser_Old:
     def __init__(self, tokens):
         self.loc = 0
+        #Tokens item come as an array of 3 alements [Token, Type, Line, Column]
         self.tokens = tokens
 
         if len(self.tokens) > 0:
@@ -651,6 +651,73 @@ class Parser:
         print("    "+"^^^^")
         print("*** syntax error")
         exit()
+
+    def Parse(self):
+        if self.curr_token is None:
+            return None
+
+        res = self.Program()
+
+        return res
+    
+
+class Parser:
+    def __init__(self, tokens):
+        self.loc = 0
+        #Tokens item come as an array of 3 alements [Token, Type, Line, Column]
+        self.tokens = tokens
+
+        if len(self.tokens) > 0:
+            self.curr_token = self.tokens[self.loc]
+        else:
+            self.curr_token = None
+            print("Empty program is syntactically incorrect.")
+
+    def Next(self):
+        try:
+            self.loc += 1
+            try:
+                self.curr_token = self.tokens[self.loc]
+            except:
+                quit()
+        except StopIteration:
+            self.curr_token = None
+    
+    def Back(self):
+        try:
+            self.loc -= 1
+            self.curr_token = self.tokens[self.loc]
+        except StopIteration:
+            self.curr_token = None
+
+    def Program(self):
+        "Program : Decl+"
+        print("\n   Program: ")
+        while self.curr_token is not None:
+            self.Decl()
+
+    def Decl(self):
+        "Decl : VariableDecl | FunctionDecl"
+        try:
+            self.VariableDecl()
+        except:
+            pass
+        self.FunctionDecl()
+
+    def VariableDecl(self):
+        "Variable ;"
+        self.Variable()
+        self.Next()
+        if self.curr_token[0] == ";":
+            pass
+        else:
+            raise Exception()
+        
+    def Variable(self):
+        "Type ident"
+        print(self.curr_token[1])
+        if self.curr_token[1] == "T_Identifier":
+            pass
 
     def Parse(self):
         if self.curr_token is None:
