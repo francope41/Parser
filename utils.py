@@ -7,6 +7,7 @@ class Lex_Analyzer:
         file = open(path, 'r')
         self.program = file
         self.tokens_list = []
+        self.lines_list = []
 
 
     def Tokenize(self):
@@ -25,7 +26,7 @@ class Lex_Analyzer:
         ]
 
         # Specify regex for each token
-        t_VOID = r'^void$'
+        t_VOID = r'void'
         t_INT = r'int'
         t_DOUBLE = r'double'
         t_BOOL = r'bool'
@@ -83,12 +84,21 @@ class Lex_Analyzer:
 
         #Open and read file to tokenize
         for line in self.program:
+            self.lines_list.append(line)
             lexer.input(line)
-            #Tokens item come as an array of 3 alements [Token, Type, Line, Column]
+            #Tokens item come as an array of 4 alements [Token, Type, Line, Column]
             for token in lexer:
-                self.tokens_list.append([token.value,token.type,token.lineno,token.lexpos])
+                if token.value in ['void','int','double','bool','string','null','for','while','if','else','return','break','Print','ReadInteger','ReadLine']:
+                    tk_str = token.value
+                    self.tokens_list.append([token.value,"T_{}".format((tk_str.capitalize())),token.lineno,token.lexpos])
+                
+                elif token.value in ['true','false']:
+                    self.tokens_list.append([token.value,'T_BoolConstant',token.lineno,token.lexpos])
+                
+                else:
+                    self.tokens_list.append([token.value,token.type,token.lineno,token.lexpos])
 
-        return self.tokens_list
+        return self.tokens_list, self.lines_list
   
 class Parser_Old:
     def __init__(self, tokens):
@@ -662,11 +672,11 @@ class Parser_Old:
     
 
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens, linesList):
         self.loc = 0
         #Tokens item come as an array of 3 alements [Token, Type, Line, Column]
         self.tokens = tokens
-
+        self.lines_list = linesList
         if len(self.tokens) > 0:
             self.curr_token = self.tokens[self.loc]
         else:
@@ -692,7 +702,7 @@ class Parser:
 
     def Program(self):
         "Program : Decl+"
-        print("\n   Program: ")
+        #print("\n   Program: ")
         while self.curr_token is not None:
             self.Decl()
 
@@ -709,15 +719,409 @@ class Parser:
         self.Variable()
         self.Next()
         if self.curr_token[0] == ";":
-            pass
+            self.Next()
         else:
-            raise Exception()
+            self.Error()
         
     def Variable(self):
         "Type ident"
-        print(self.curr_token[1])
+        self.Type()
         if self.curr_token[1] == "T_Identifier":
+            self.Next()
+        else:
+            self.Error()
+            raise Exception("Variable Error")
+
+    def Type(self):
+        "int | double | bool | string"
+        if self.curr_token[0] in ["int","double","bool","string"]:
+            self.Next()
+        else:
+            self.Error()
+            raise Exception("Type Error")
+        
+    def Void(self):
+        "void"
+        if self.curr_token[0] == "void":
+            self.Next()
+        else:
+            self.Error()
+            raise Exception("Void")
+
+    def FunctionDecl(self):
+        "Type ident ( Formals ) StmtBlock | void ident ( Formals ) StmtBlock"
+        try:
+            try:
+                self.Type()
+                if self.curr_token[1] == "T_Identifier":
+                    self.Next()
+                    if self.curr_token[0] == "(":
+                        self.Next()
+                        self.Formals()
+                        if self.curr_token[0] == ")":
+                            self.StmtBlock()
+                else:
+                    self.Error()
+                    raise Exception("Func Decl - T_Identifier")
+                
+            except:
+                self.Void()
+                if self.curr_token[1] == "T_Identifier":
+                    self.Next()
+                    if self.curr_token[0] == "(":
+                        self.Next()
+                        self.Formals()
+                        if self.curr_token[0] == ")":
+                            self.StmtBlock()
+                else:
+                    self.Error()
+                    raise Exception("Func Decl - Void")
+        except:
+
+            raise Exception("Func Decl")
+
+    def Formals(self):
+        "Variable+, | ϵ"
+        while self.curr_token[0] != ")":
+            self.Variable()
+            if self.curr_token[0] == ",":
+                continue
+        
+        self.Next()
+
+    def StmtBlock(self):
+        "{ VariableDecl∗ Stmt∗ }"
+        if self.curr_token[0] == "{":
+            while self.curr_token !="}":
+                try:
+                    self.VariableDecl()
+                except:
+                    pass
+                try:
+                    self.Stmt()
+                except:
+                    pass
+
+    def Stmt(self):
+        "<Expr>; | IfStmt | WhileStmt | ForStmt | BreakStmt | ReturnStmt | PrintStmt | StmtBlock"
+        try:
+            try:
+                self.Expr()
+            except:
+                pass
+            try:
+                self.IfStmt()
+            except:
+                pass
+            try:
+                self.WhileStmt()
+            except:
+                pass
+            try:
+                self.ForStmt()
+            except:
+                pass
+            try:
+                self.BreakStmt()
+            except:
+                pass
+            try:
+                self.ReturnStmt()
+            except:
+                pass
+            try:
+                self.PrintStmt()
+            except:
+                pass
+            try:
+                self.StmtBlock()
+            except:
+                pass
+        except:
+            raise Exception("Stmt Exception")
+        
+    def IfStmt(self):
+        "if ( Expr ) Stmt <else Stmt>"
+        if self.curr_token[0] == "if":
+            self.Next()
+            if self.curr_token["("]:
+                while self.curr_token != ")":
+                    self.Expr()
+                self.Next()#Skip closing parenthesis
+                self.Stmt()
+                self.Next()
+                if self.curr_token[0] == "else":
+                    self.Stmt()
+                else:
+                    pass
+
+    def WhileStmt(self):
+        "while ( Expr ) Stmt"
+        if self.curr_token[0] == "while":
+            self.Next()
+            if self.curr_token[0] == "(":
+                while self.curr_token[0] !=")":
+                    self.Expr()
+                self.Next() #Skip closing parenthesis
+                self.Stmt()
+    
+    def ForStmt(self):
+        "for ( <Expr>; Expr ; <Expr>) Stmt"
+        if self.curr_token[0] == "for":
+            self.Next()
+            if self.curr_token[0] == "(":
+                while self.curr_token[0] !=")":
+                    try:
+                        self.Expr()
+                    except:
+                        if self.curr_token[0] == ";":
+                            self.Next()
+                        else:
+                            raise Exception("For error missing ';'")
+                    
+                    self.Expr()
+
+                    if self.curr_token[0] == ";":
+                        self.Next()
+                    else:
+                        raise Exception("For error missing ';'")
+
+                    try:
+                        self.Expr()
+                    except:
+                        if self.curr_token[0] == ")":
+                            self.Next()
+                        else:
+                            raise Exception("For error missing ')'")     
+
+                    self.Stmt()
+
+    def ReturnStmt(self):
+        "return < Expr > ;"
+        if self.curr_token[0] == "return":
+            self.Next()
+            try:
+                self.Expr()
+            except:
+                if self.curr_token[";"]:
+                    self.Next()
+                else:
+                    raise Exception("Return error missing ';'")
+                
+    def BreakStmt(self):
+        "break ;"
+        if self.curr_token[0] == "break":
+            self.Next()
+            if self.curr_token[0] == ";":
+                self.Next()
+            else:
+                raise Exception("Break error missing ';'")
+
+    def PrintStmt(self):
+        "Print ( Expr+, ) ;"
+        if self.curr_token[0] == "Print":
+            self.Next()
+            if self.curr_token[0] == "(":
+                while self.curr_token[0] !=")":
+                    self.Expr()
+                    if self.curr_token[0] == ",":
+                        self.Next()
+
+                self.Next()  #Skip closing parenthesis
+                if self.curr_token[0] == ";":
+                    self.Next()
+                else:
+                    raise Exception("Print error missing ';'")
+                
+    def Expr(self):
+        """
+            LValue = Expr | Constant | LValue | Call | ( Expr ) |
+            Expr + Expr | Expr - Expr | Expr * Expr | Expr / Expr |
+            Expr % Expr | - Expr | Expr < Expr | Expr <= Expr |
+            Expr > Expr | Expr >= Expr | Expr == Expr | Expr ! = Expr |
+            Expr && Expr | Expr || Expr | ! Expr | ReadInteger ( ) |
+            ReadLine ( )
+        """
+        try:
+            self.LValue()
+            if self.curr_token[0] == "=":
+                self.Next()
+                self.Expr()
+        except:
             pass
+        try:
+            self.Constant()
+        except:
+            pass
+        try:
+            self.Lvalue()
+        except:
+            pass
+        try:
+            self.Call()
+        except:
+            pass
+        try:
+            if self.curr_token[0] == "(":
+                while self.curr_token[0] != ")":
+                    self.Expr()
+                self.Next() #Skip closing parenthesis
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "+":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "-":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "*":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "/":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "%":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "<":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "<=":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == ">":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == ">=":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "==":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "!=":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "&&":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "||":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.Expr()
+            if self.curr_token[0] == "!":
+                self.Next()
+            self.Expr()
+        except:
+            pass
+        try:
+            self.ReadInteger()
+        except:
+            pass
+        try:
+            self.ReadLine()
+        except:
+            pass
+
+    def LValue(self):
+        "ident"
+        if self.curr_token[1] == "T_Identifier":
+            self.Next()
+
+    def Call(self):
+        "ident ( Actuals )"
+        if self.curr_token[1] == "T_Identifier":
+            self.Next()
+            if self.curr_token[0] == "(":
+                while self.curr_token[0] != ")":
+                    self.Actuals()
+
+                self.Next() #Skip closing parenthesis
+        
+    def Actuals(self):
+        self.Expr()
+        if self.curr_token[0] == ",":
+            self.Next()
+        else:
+            pass
+
+    def Constant(self):
+        "intConstant | doubleConstant | boolConstant | stringConstant | null"
+
+        if self.curr_token[1] == "N_INT":
+            self.Next()
+        elif self.curr_token[1] == "N_DOUBLE":
+            self.Next()
+        elif self.curr_token[1] == "T_BoolConstant":
+            self.Next()
+        elif self.curr_token[1] == "STR":
+            self.Next()
+        elif self.curr_token[1] == "T_Null":
+            self.Next()
+        else:
+            raise Exception("No Constant")
+
+    def Error(self):
+        #[Token, Type, Line, Column]
+        print("")
+        print("*** Error line {}.".format(self.curr_token[2]))
+        print(self.lines_list[self.curr_token[2]])
+        print(""*self.curr_token[3]+"^"*len(self.curr_token[0]))
+        print("*** syntax error")
+        os._exit(1) #Fix this
+
 
     def Parse(self):
         if self.curr_token is None:

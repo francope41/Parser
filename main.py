@@ -15,9 +15,9 @@ class SintaxAnalyzer:
     def __init__(self, program):
         #Tokenize Program
         Lexer = Lex_Analyzer(program)
-        tokens = Lexer.Tokenize()
+        tokens, linesList = Lexer.Tokenize()
         #Parse Program
-        parser = Parser(tokens)
+        parser = Parser(tokens,linesList)
         tree = parser.Parse()
         if tree is not None:
             print(tree)
