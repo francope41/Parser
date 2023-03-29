@@ -240,10 +240,12 @@ class Parser:
                 else:
                     try:
                         self.Stmt()
+
                     except:
                         self.Next()
 
                 #self.Next()
+
 
             if self.curr_token[0] == '}':
                 self.Next()
@@ -269,25 +271,30 @@ class Parser:
             self.PrintStmt()
 
         elif self.curr_token[0] == '{':
-            self.StmtBlock
+            self.StmtBlock()
+
+        elif self.curr_token[0] == "else":
+            self.Error(self.curr_token)
+
         else:
             self.Expr()
+
 
         if self.curr_token[0] == ";":
             self.Next()
         else:
-            raise Exception("theres and ex here")
+            pass
+            #raise Exception("theres and ex here")
 
     def IfStmt(self):
         "if ( Expr ) Stmt <else Stmt>"
         if self.curr_token[0] == "if":
+            print("                  IfStmt: ")
             self.Next()
-            if self.curr_token["("]:
-                while self.curr_token != ")":
-                    try:
-                        self.Expr()
-                    except:
-                        break
+            if self.curr_token[0] == "(":
+                while self.curr_token[0] != ")":
+                    self.Expr()
+                    
                 self.Next()#Skip closing parenthesis
                 self.Stmt()
                 self.Next()
@@ -299,35 +306,32 @@ class Parser:
     def WhileStmt(self):
         "while ( Expr ) Stmt"
         if self.curr_token[0] == "while":
+            print("            WhileStmt: ")
             self.Next()
             if self.curr_token[0] == "(":
+                self.Next()
                 while self.curr_token[0] !=")":
-                    try:
-                        self.Expr()
-                    except:
-                        break
+                    self.Expr()
+
                 self.Next() #Skip closing parenthesis
+                
                 self.Stmt()
-    
+
+
     def ForStmt(self):
         "for ( <Expr>; Expr ; <Expr>) Stmt"
         if self.curr_token[0] == "for":
+            print("            ForStmt: ")
             self.Next()
             if self.curr_token[0] == "(":
+                self.Next()
                 while self.curr_token[0] !=")":
-                    try:
-                        self.Expr()
-                    except:
-                        if self.curr_token[0] == ";":
-                            self.Next()
-                        else:
-                            break
-                            raise Exception("For error missing ';'")
-                    
-                    self.Expr()
-
-                    if self.curr_token[0] == ";":
+                    if self.curr_token[0] == ';':
+                        print("               (init) Empty: ")
                         self.Next()
+
+                        self.Expr()
+                    
                     else:
                         raise Exception("For error missing ';'")
 
@@ -347,6 +351,7 @@ class Parser:
             print("  {}         ReturnStmt: ".format(self.curr_token[2]))
             self.Next()
             if self.curr_token[0] == ";":
+                print("               Empty: ")
                 self.Next()
             else:
                 self.Expr()
@@ -354,6 +359,7 @@ class Parser:
     def BreakStmt(self):
         "break ;"
         if self.curr_token[0] == "break":
+            print("  {}                  (then) BreakStmt: ".format(self.curr_token[2]))
             self.Next()
             if self.curr_token[0] == ";":
                 self.Next()
@@ -405,6 +411,8 @@ class Parser:
                 self.Args()
                 self.Next()
 
+            elif self.curr_token[0] == ";":
+                self.TypeIdent(self.Lval)
             else:
                 self.Expr()
 
@@ -508,64 +516,68 @@ class Parser:
                 self.TypeIdent(Rval)
                 self.Next()
             
+            elif self.tokens[self.loc+2][0] in ["&&","||","=="]:
+                self.Next()
+                Rval = self.curr_token
+                self.TypeIdent(Rval)
+                self.Next()
+                print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
+                self.Next()
+                self.TypeIdent(self.curr_token)
+                self.Next()
+            
             else:
                 self.Next()
                 self.Expr()
 
         elif self.curr_token[0] == "<":
-            print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
+            print("  {}               RelationalExpr: ".format(self.curr_token[2]))
             self.TypeIdent(self.Lval)
             print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
-
             if self.tokens[self.loc+2][0] in [";",",",")"]:
                 self.Next()
                 Rval = self.curr_token
                 self.TypeIdent(Rval)
                 self.Next()
-            
             else:
                 self.Next()
                 self.Expr()
 
         elif self.curr_token[0] == "<=":
-            print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
+            print("  {}               RelationalExpr: ".format(self.curr_token[2]))
             self.TypeIdent(self.Lval)
             print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
-
             if self.tokens[self.loc+2][0] in [";",",",")"]:
                 self.Next()
                 Rval = self.curr_token
                 self.TypeIdent(Rval)
                 self.Next()
-            
             else:
                 self.Next()
                 self.Expr()
 
         elif self.curr_token[0] == ">":
-            print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
+            print("  {}               RelationalExpr: ".format(self.curr_token[2]))
             self.TypeIdent(self.Lval)
             print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
-
             if self.tokens[self.loc+2][0] in [";",",",")"]:
                 self.Next()
                 Rval = self.curr_token
                 self.TypeIdent(Rval)
                 self.Next()
-            
             else:
                 self.Next()
                 self.Expr()
 
         elif self.curr_token[0] == ">=":
-            print("  {}                  Operator: {}".format(self.curr_token[2],self.curr_token[0]))
-            
+            print("  {}               RelationalExpr: ".format(self.curr_token[2]))
+            self.TypeIdent(self.Lval)
+            print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
             if self.tokens[self.loc+2][0] in [";",",",")"]:
                 self.Next()
                 Rval = self.curr_token
                 self.TypeIdent(Rval)
                 self.Next()
-            
             else:
                 self.Next()
                 self.Expr()
@@ -588,15 +600,16 @@ class Parser:
                 self.TypeIdent(Rval)
                 self.Next()
                 self.Expr()
-            
+
             else:
                 self.Next()
                 self.Expr()
 
         elif self.curr_token[0] == "!=":
-            print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
-            self.TypeIdent(self.Lval)
             print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
+            print("  {}               RelationalExpr: ".format(self.curr_token[2]))
+            self.Next()
+            self.TypeIdent(self.curr_token)
 
             if self.tokens[self.loc+2][0] in [";",",",")"]:
                 self.Next()
@@ -625,9 +638,10 @@ class Parser:
                 self.Expr()
 
         elif self.curr_token[0] == "||":
-            print("  {}            ArithmeticExpr: ".format(self.curr_token[2]))
-            self.TypeIdent(self.Lval)
             print("  {}               Operator: {}".format(self.curr_token[2],self.curr_token[0]))
+            print("  {}               RelationalExpr: ".format(self.curr_token[2]))
+            self.Next()
+            self.TypeIdent(self.curr_token)
 
             if self.tokens[self.loc+2][0] in [";",",",")"]:
                 self.Next()
@@ -822,7 +836,7 @@ class Parser:
         #[Token, Type, Line, Column]
         print("")
         print("*** Error line {}.".format(errorTkn[2]))
-        print(self.lines_list[errorTkn[2]].strip())
+        print(self.lines_list[errorTkn[2]-1].strip())
         print(" " * errorTkn[3]+"^"*len(errorTkn[0]))
         print("*** syntax error")
         print("")
