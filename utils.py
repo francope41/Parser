@@ -240,8 +240,8 @@ class Parser:
                     except:
                         self.Next()
 
-                    if self.curr_token[0] in ["int","double","bool","string"] or self.curr_token[1] == "IDENTIFIER":
-                        self.Error(self.curr_token)
+                    # if self.curr_token[0] in ["int","double","bool","string"] or self.curr_token[1] == "IDENTIFIER":
+                    #     self.Error(self.curr_token)
 
 
             if self.curr_token[0] == '}':
@@ -270,8 +270,8 @@ class Parser:
         elif self.curr_token[0] == '{':
             self.StmtBlock()
 
-        elif self.curr_token[0] == "else":
-            self.Error(self.curr_token)
+        # elif self.curr_token[0] == "else":
+        #     self.Error(self.curr_token)
 
         else:
             self.Expr()

@@ -103,5 +103,8 @@
   17               RelationalExpr: 
   17               FieldAccess: 
   17                   Identifier: d
-  17                  Operator: >=
+  17               RelationalExpr: 
+  17               FieldAccess: 
+  17                   Identifier: a
+  17               Operator: >=
   17                   DoubleConstant: 1.0

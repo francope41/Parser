@@ -37,6 +37,7 @@
   14                   Identifier: c
   14            Operator: =
   14            ArithmeticExpr: 
+  14            ArithmeticExpr: 
   14               FieldAccess: 
   14                   Identifier: a
   14               Operator: +
