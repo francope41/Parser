@@ -85,8 +85,7 @@ class Lex_Analyzer:
         #Open and read file to tokenize
         line_count = 1
         for line in self.program:
-            if line != "\n":
-                self.lines_list.append(line)
+            self.lines_list.append(line)
             lexer.input(line)
             #Tokens item come as an array of 4 alements [Token, Type, Line, Column]
             for token in lexer:
@@ -99,7 +98,6 @@ class Lex_Analyzer:
                 
                 else:
                     self.tokens_list.append([token.value,token.type,line_count,token.lexpos])
-                
             line_count += 1
 
         return self.tokens_list, self.lines_list
@@ -236,15 +234,14 @@ class Parser:
                 if self.curr_token[0] in ["int","double","bool","string"]:
                     self.Var_Declared_List.append([self.curr_token[0], self.curr_token[2]])
                     self.VariableDecl()
-                    
                 else:
                     try:
                         self.Stmt()
-
                     except:
                         self.Next()
 
-                #self.Next()
+                    if self.curr_token[0] in ["int","double","bool","string"] or self.curr_token[1] == "IDENTIFIER":
+                        self.Error(self.curr_token)
 
 
             if self.curr_token[0] == '}':
@@ -269,7 +266,7 @@ class Parser:
 
         elif self.curr_token[0] == 'Print':
             self.PrintStmt()
-
+            
         elif self.curr_token[0] == '{':
             self.StmtBlock()
 
@@ -278,7 +275,6 @@ class Parser:
 
         else:
             self.Expr()
-
 
         if self.curr_token[0] == ";":
             self.Next()
@@ -376,11 +372,11 @@ class Parser:
                 while self.curr_token[0] !=")":
                     self.Expr()
 
-                self.Next()  #Skip closing parenthesis
-                if self.curr_token[0] == ";":
-                    self.Next()
-                else:
-                    raise Exception("Print error missing ';'")
+                if self.curr_token[0] == ")":
+                    self.Next()  #Skip closing parenthesis
+
+                elif self.curr_token[0] == ";":
+                    self.Next()                
                 
     def Expr(self):
         """
@@ -405,7 +401,7 @@ class Parser:
             
             elif self.curr_token[0] == ")":
                 self.TypeIdent(self.Lval,"actuals")
-                self.Next()
+                #self.Next()
 
             elif self.curr_token[0] == ",":
                 self.Args()
@@ -836,8 +832,9 @@ class Parser:
         #[Token, Type, Line, Column]
         print("")
         print("*** Error line {}.".format(errorTkn[2]))
-        print(self.lines_list[errorTkn[2]-1].strip())
-        print(" " * errorTkn[3]+"^"*len(errorTkn[0]))
+        errline = self.lines_list[errorTkn[2]-1].strip()
+        print(errline)
+        print(" "*errorTkn[3]+"^")
         print("*** syntax error")
         print("")
         quit(1)
