@@ -6,7 +6,7 @@
 # Import required libraries
 import sys
 import numpy as np
-from utils import Parser, Lex_Analyzer
+from test import Parser, Lex_Analyzer
 
 #### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -####
 
@@ -17,8 +17,8 @@ class SintaxAnalyzer:
         Lexer = Lex_Analyzer(program)
         tokens, linesList = Lexer.Tokenize()
         #Parse Program
-        parser = Parser(tokens,linesList)
-        tree = parser.Parse()
+        parser = Parser(tokens)
+        tree = parser.parse()
         if tree is not None:
             print(tree)
 
